@@ -11,12 +11,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Image } from 'expo-image';
-// import * as Svg from 'react-native-svg';
+import ColorText from './components/ColorText';
+import * as ScreenOrientation from 'expo-screen-orientation'
 
-// Constants for turn status
-const IMAGE_SRC = "./assets/";
-const OFF = "off";
-const ON = "on";
 
 // Import your image sources directly
 import BPS_OFF from './assets/bps_off.png';
@@ -26,26 +23,42 @@ import LEFT_ARROW_ON from './assets/arrows/left_on.png';
 import RIGHT_ARROW_OFF from './assets/arrows/right_off.png';
 import RIGHT_ARROW_ON from './assets/arrows/right_on.png';
 
+// Constants for turn status
+const IMAGE_SRC = "./assets/";
+const OFF = "off";
+const ON = "on";
 
+// Constant for light transition time.
 const LIGHT_TRANSITION_TIME = 300;
 
 export default function App() {
 
+  //Screen Orientation
+  const [orientationIsLandscape,setOrientation] = useState(false);
+
   // State for current MPH
-  const [currentSpeed, setCurrentSpeed] = useState(20);
+  const [currentSpeed, setCurrentSpeed] = useState(34);
   
+  //Battery Stats
+  const [charge, setCharge] = useState(78); // Battery remaining
+  const [oneTemp, setOneTemp] = useState(19); // Degrees F
+  const [twoTemp, setTwoTemp] = useState(19); // Degrees F
+  const [current, setCurrent] = useState(20); // Amps
+  const [power, setPower] = useState(1800); // Watts
+  const [voltage, setVoltage] = useState(120); // Volts
+
   // BPS Indicator
-  const [bpsFault, setBpsFault] = useState(OFF);
+  const [bpsFault, setBpsFault] = useState(OFF); // Use this
   const [bpsFaultState, setBpsFaultState] = useState(bpsFault);
   const bpsSrc = bpsFaultState === OFF ? BPS_OFF : BPS_ON;
 
   // Left Turn Signal Indicator
-  const [leftArrow, setLeftArrow] = useState(OFF);
+  const [leftArrow, setLeftArrow] = useState(OFF); // Use this
   const [leftArrowState, setLeftArrowState] = useState(leftArrow);
   const leftArrowSource = leftArrowState === OFF ? LEFT_ARROW_OFF : LEFT_ARROW_ON;
 
   // Right Turn Signal Indicator
-  const [rightArrow, setRightArrow] = useState(ON);
+  const [rightArrow, setRightArrow] = useState(OFF); // Use this
   const [rightArrowState, setRightArrowState] = useState(rightArrow);
   const rightArrowSource = rightArrowState === OFF ? RIGHT_ARROW_OFF : RIGHT_ARROW_ON;
 
@@ -64,13 +77,31 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Screen rotation https://plainenglish.io/blog/how-to-change-a-devices-screen-orientation-using-expo-in-react-native-af69c10032fb
+  async function changeScreenOrientation(){
+    if(orientationIsLandscape==true){
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+      console.log("change portrait");
+    }
+    else if(orientationIsLandscape==false){
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      console.log("change portrait");
+    }
+  }
+  const toggleOrientation=()=>{
+    setOrientation(!orientationIsLandscape)
+    changeScreenOrientation()
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.speedometer}>
+      <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#00BCD4" translucent = {true}/>
+      <View style={styles.top}>
         <Speedometer
           value={currentSpeed}
           max={80}
           angle={160}
+          height={160}
           accentColor="orange"
         >
           
@@ -85,13 +116,27 @@ export default function App() {
         </Text>
       </View>
 
-      <View style={styles.battery}>
+      <View style={styles.middle}>
         <View style={styles.battery_panel}> 
-          <Text>Battery Statistics:</Text>
+          <View style={{flex:0.5}}>
+            <Text style={styles.text_title}>Battery Charge:</Text>
+            <ColorText 
+              extraText={"Battery Charge:"}
+              percentage={charge}>
+            </ColorText>
+          </View>
+          <View style={{flex:1}}>
+            <Text style={styles.text_title}>Battery Statistics:</Text>
+            <Text style={styles.text_info}>Box One Temp: {oneTemp}°</Text>
+            <Text style={styles.text_info}>Box Two Temp: {twoTemp}°</Text>
+            <Text style={styles.text_info}>Current: {current} amps</Text>
+            <Text style={styles.text_info}>Power: {power} watts</Text>
+            <Text style={styles.text_info}>Voltage: {voltage} volts</Text>
+          </View>
         </View>
       </View>
 
-      <View style={styles.arrows}>
+      <View style={styles.bottom}>
         <Image
                 style={styles.arrow}
                 source={leftArrowSource}
@@ -111,40 +156,50 @@ export default function App() {
                 contentFit="contain"
           />
       </View>
+
+      <StatusBar style={"dark"} />
     </View>
 
   );
 }
 
 const styles = StyleSheet.create({
+  statusbar: {
+    backgroundColor: "purple"
+  },
   container: {
     flex: 1,
     backgroundColor: '#8c8c8c',
     alignItems: 'center',
-    paddingTop: 30,
     position: 'relative'
+    
+  },
+  top: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 50,
+    width: '100%',
+    // backgroundColor: "purple",
+    paddingBottom: 10
   },
   speedometer: {
-    flex: 0.3,
-    alignItems: 'center',
-    flexDirection: 'column',
-    marginBottom: 0,
-    paddingTop: 20,
-    padding: 0,
-    width: '100%'
+
   },
   MPH: {
-    marginTop: 0,
     fontSize: 30,
     fontWeight: "bold",
-    marginTop: -90,
-    padding: 0,
-    marginBottom: 0
+    marginTop: 0,
+    // backgroundColor: "red",
   },
-  battery: {
-    flex: 0.4,
+  middle: {
+    flex: 1.2,
+    marginTop: 0,
+    marginBottom: 0,
     width: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
+    // backgroundColor: "blue"
   },
   battery_panel: {
     backgroundColor: '#d6d6d6',
@@ -153,11 +208,12 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 12
   },
-  arrows: {
-    flex: 0.2,
+  bottom: {
+    flex: 0.8,
     flexDirection: "row",
     marginTop: 0,
-    paddingTop: 20
+    justifyContent: 'top',
+    // backgroundColor: "green"
   },
   arrow: {
     flex: 1,
@@ -168,4 +224,17 @@ const styles = StyleSheet.create({
     width: '15%',
     padding: 0
   },
+  text_title: {
+    flex: 0.3,
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 0,
+    textAlign: 'center'
+  },
+  text_info: {
+    flex: 0.2,
+    fontSize: 17,
+    marginTop: 0,
+    textAlign: 'center'
+  }
 });
