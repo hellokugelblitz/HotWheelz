@@ -3,7 +3,6 @@
     "name": "hotwheelzdashboard",
     "slug": "hotwheelzdashboard",
     "version": "1.0.0",
-    "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -16,7 +15,16 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.hotwheelzdashboard"
+      "bundleIdentifier": "com.anonymous.hotwheelzdashboard",
+      "requireFullScreen": true,
+      "plugins": [
+        [
+          "expo-screen-orientation",
+          {
+            "initialOrientation": "DEFAULT"
+          }
+        ]
+      ]
     },
     "android": {
       "adaptiveIcon": {
